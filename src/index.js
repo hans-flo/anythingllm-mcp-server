@@ -25,10 +25,22 @@ const server = new Server(
 );
 
 let client = null;
+const envApiKey =
+  process.env.ANYTHING_LLM_API_KEY || process.env.ANYTHINGLLM_API_KEY || null;
+const envBaseUrl =
+  process.env.ANYTHING_LLM_BASE_URL || process.env.ANYTHINGLLM_BASE_URL || null;
 let config = {
-  apiKey: process.env.ANYTHINGLLM_API_KEY || null,
-  baseUrl: process.env.ANYTHINGLLM_BASE_URL || 'http://localhost:3001'
+  apiKey: envApiKey,
+  baseUrl: envBaseUrl || 'http://localhost:3001'
 };
+
+if (config.apiKey) {
+  client = new AnythingLLMClient(config.baseUrl, config.apiKey);
+}
+
+console.error(
+  `[anythingllm-mcp-server] env apiKey present=${Boolean(config.apiKey)} baseUrl=${config.baseUrl}`
+);
 
 server.setRequestHandler(ListToolsRequestSchema, async () => {
   return {
@@ -210,15 +222,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     
     switch (name) {
       case 'initialize_anythingllm':
-        config.apiKey = args.apiKey;
-        if (args.baseUrl) {
-          config.baseUrl = args.baseUrl;
+        {
+          const nextApiKey = args.apiKey;
+          const nextBaseUrl = args.baseUrl || config.baseUrl;
+          const alreadyInitialized =
+            client &&
+            config.apiKey === nextApiKey &&
+            config.baseUrl === nextBaseUrl;
+
+          if (!alreadyInitialized) {
+            config.apiKey = nextApiKey;
+            config.baseUrl = nextBaseUrl;
+            client = new AnythingLLMClient(config.baseUrl, config.apiKey);
+          }
+
+          result = {
+            message: alreadyInitialized
+              ? 'AnythingLLM client already initialized; using existing configuration'
+              : 'AnythingLLM client initialized successfully',
+            baseUrl: config.baseUrl
+          };
         }
-        client = new AnythingLLMClient(config.baseUrl, config.apiKey);
-        result = { 
-          message: 'AnythingLLM client initialized successfully',
-          baseUrl: config.baseUrl 
-        };
         break;
         
       case 'list_workspaces':

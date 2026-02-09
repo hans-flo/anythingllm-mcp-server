@@ -240,10 +240,14 @@ export class AnythingLLMClient {
   }
 
   // Search
-  async searchWorkspace(workspaceSlug, query, limit = 10) {
-    return this.request(`/api/v1/workspace/${workspaceSlug}/search`, {
+  async searchWorkspace(workspaceSlug, query, topN = 10, scoreThreshold) {
+    return this.request(`/api/v1/workspace/${workspaceSlug}/vector-search`, {
       method: 'POST',
-      body: JSON.stringify({ query, limit })
+      body: JSON.stringify({
+        query,
+        topN,
+        ...(scoreThreshold !== undefined ? { scoreThreshold } : {})
+      })
     });
   }
 

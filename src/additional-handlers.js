@@ -102,7 +102,12 @@ export async function handleAdditionalTools(name, args, client) {
 
     // Search
     case 'search_workspace':
-      result = await client.searchWorkspace(args.slug, args.query, args.limit || 10);
+      result = await client.searchWorkspace(
+        args.slug,
+        args.query,
+        args.topN ?? args.limit ?? 10,
+        args.scoreThreshold
+      );
       break;
 
     // Agent Management

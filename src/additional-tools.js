@@ -330,7 +330,7 @@ export const additionalTools = [
   // Search
   {
     name: 'search_workspace',
-    description: 'Search within a workspace',
+    description: 'Vector search within a workspace',
     inputSchema: {
       type: 'object',
       properties: {
@@ -342,9 +342,18 @@ export const additionalTools = [
           type: 'string',
           description: 'Search query'
         },
-        limit: {
+        topN: {
           type: 'number',
           description: 'Maximum number of results',
+          default: 10
+        },
+        scoreThreshold: {
+          type: 'number',
+          description: 'Minimum similarity score threshold'
+        },
+        limit: {
+          type: 'number',
+          description: 'Deprecated: use topN',
           default: 10
         }
       },
